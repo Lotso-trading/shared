@@ -1,6 +1,8 @@
 import { assertEquals, assertThrows } from "jsr:@std/assert";
 import {
   AddTargetInputSchema,
+  buildClosedPositionEmbed,
+  buildClosedPositionsSummaryEmbed,
   DetectedTradeSchema,
   DiscordWebhookPayloadSchema,
   EthereumAddressSchema,
@@ -201,4 +203,55 @@ Deno.test("PaginationQuerySchema - convertit et assigne les valeurs par défaut"
   assertEquals(parsedCustom.page, 3);
   assertEquals(parsedCustom.limit, 50);
   assertEquals(parsedCustom.side, "BUY");
+});
+
+Deno.test("buildClosedPositionEmbed - construit et valide un payload pour une victoire", () => {
+  const position = {
+    id: "pos-win-1",
+    conditionId: "0x1234567890abcdef1234567890abcdef12345678",
+    assetAddress: "0x2005d16a84ceefa912d4e380cd32e7ff827875ea",
+    marketSlug: "presidential-election-2026",
+    marketQuestion: "Who will win the 2026 election?",
+    outcomeLabel: "Democrat",
+    status: "CLOSED" as const,
+    closeReason: "RESOLVED_WIN" as const,
+    settledPayoutUsdc: 60.0,
+    realizedPnlUsdc: 30.0,
+    totalShares: 60.0,
+    avgEntryPrice: 0.5,
+    totalInvestedUsdc: 30.0,
+    currentMarketPrice: 1.0,
+    currentMarketValueUsdc: 60.0,
+    unrealizedPnlUsdc: 0,
+    unrealizedPnlPercent: 0,
+    targetAddress: "0x2005d16a84ceefa912d4e380cd32e7ff827875ea",
+    openedAt: Date.now() - 3600000,
+    closedAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+
+  const payload = buildClosedPositionEmbed(position, "RN1 (+13.4M$)");
+  const parsed = DiscordWebhookPayloadSchema.parse(payload);
+  assertEquals(parsed.embeds.length, 1);
+  assertEquals(parsed.embeds[0]?.title?.includes("VICTOIRE"), true);
+  assertEquals(parsed.embeds[0]?.color, 0x00c853);
+});
+
+Deno.test("buildClosedPositionsSummaryEmbed - construit et valide un payload de synthèse", () => {
+  const summary = {
+    totalCount: 28,
+    wonCount: 24,
+    lostCount: 4,
+    whaleSellCount: 0,
+    totalInvestedUsdc: 653.11,
+    totalPayoutUsdc: 1231.9,
+    totalRealizedPnlUsdc: 578.79,
+    winRatePercent: 85.71,
+  };
+
+  const payload = buildClosedPositionsSummaryEmbed(summary);
+  const parsed = DiscordWebhookPayloadSchema.parse(payload);
+  assertEquals(parsed.embeds.length, 1);
+  assertEquals(parsed.embeds[0]?.title?.includes("Bilan Global"), true);
+  assertEquals(parsed.embeds[0]?.color, 0x00c853);
 });
