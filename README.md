@@ -23,19 +23,23 @@ Le package `@polymarket-copy/shared` est le **point d'ancrage universel pour tou
 ## 📚 Types & Contrats Principaux
 
 ### 1. Types de Trades (`src/types/trade.ts`)
+
 - `TradeSide` : `"BUY" | "SELL"`
 - `TradeStatus` : `"DETECTED" | "VALIDATED" | "REJECTED" | "EXECUTING" | "FILLED" | "FAILED"`
 - `DetectedTrade` : Représentation d'un ordre détecté sur une baleine avec toutes ses caractéristiques (conditionId, question, cote, montant USDC, hash de transaction).
 - `ExecutedOrder` : Ordre exécuté avec succès sur le CLOB ou simulé en mémoire.
 
 ### 2. Portefeuilles Cibles (`src/types/target.ts`)
+
 - `TargetWhale` : Adresse Polygon de la cible, label/pseudo, statut actif et métriques de réplication.
 
 ### 3. Gestion du Risque (`src/types/risk.ts`)
+
 - `RiskConfig` : Paramètres de protection active (pourcentage de balance par ordre, slippage max, seuils de prix min/max, bascule de sortie `ALL`).
 - `ValidationResult` : Résultat discriminé d'évaluation (`isValid: true` ou `isValid: false` avec motif explicite).
 
 ### 4. Télémétrie & Événements WebSocket (`src/types/events.ts`)
+
 - `WebSocketEvent` : Contrat unifié pour tous les flux temps réel consommés par le Dashboard.
 
 ---
@@ -47,7 +51,7 @@ import {
   type DetectedTrade,
   type RiskConfig,
   type TradeStatus,
-  tradeValidationSchema
+  tradeValidationSchema,
 } from "@polymarket-copy/shared";
 
 // Validation runtime d'un payload externe
