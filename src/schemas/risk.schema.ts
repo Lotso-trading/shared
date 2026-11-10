@@ -25,6 +25,12 @@ export const RiskConfigSchema = z
       .max(0.99, "La cote maximale ne peut pas dépasser 0.99 (99%)"),
     copySellOrders: z.boolean(),
     dryRun: z.boolean(),
+    maxAllocatedCapitalUsdc: z.number().min(0, "Le capital alloué doit être positif ou nul").default(0),
+    profitReinvestmentPercent: z
+      .number()
+      .min(0, "Le pourcentage de réinvestissement doit être entre 0% et 100%")
+      .max(100, "Le pourcentage de réinvestissement ne peut pas dépasser 100%")
+      .default(50.0),
   })
   .refine((data) => data.minPrice < data.maxPrice, {
     message:
@@ -44,6 +50,8 @@ export const UpdateRiskConfigInputSchema = z
     maxPrice: z.number().min(0.5).max(0.99).optional(),
     copySellOrders: z.boolean().optional(),
     dryRun: z.boolean().optional(),
+    maxAllocatedCapitalUsdc: z.number().min(0).optional(),
+    profitReinvestmentPercent: z.number().min(0).max(100).optional(),
   })
   .refine(
     (data) => {

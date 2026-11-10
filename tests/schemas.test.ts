@@ -71,6 +71,25 @@ Deno.test("RiskConfigSchema - valide une configuration conforme", () => {
   };
   const parsed = RiskConfigSchema.parse(validConfig);
   assertEquals(parsed.balancePercentPerTrade, 0.03);
+  assertEquals(parsed.maxAllocatedCapitalUsdc, 0); // valeur par défaut
+  assertEquals(parsed.profitReinvestmentPercent, 50.0); // valeur par défaut
+});
+
+Deno.test("RiskConfigSchema - valide les paramètres d'allocation de capital et réinvestissement", () => {
+  const customConfig = {
+    balancePercentPerTrade: 0.05,
+    maxSlippagePercent: 1.0,
+    maxCapPerTradeUsdc: 25.0,
+    minPrice: 0.1,
+    maxPrice: 0.8,
+    copySellOrders: true,
+    dryRun: false,
+    maxAllocatedCapitalUsdc: 100.0,
+    profitReinvestmentPercent: 50.0,
+  };
+  const parsed = RiskConfigSchema.parse(customConfig);
+  assertEquals(parsed.maxAllocatedCapitalUsdc, 100.0);
+  assertEquals(parsed.profitReinvestmentPercent, 50.0);
 });
 
 Deno.test("RiskConfigSchema - rejette un pourcentage de solde excessif (> 20%)", () => {
