@@ -73,6 +73,8 @@ Deno.test("RiskConfigSchema - valide une configuration conforme", () => {
   assertEquals(parsed.balancePercentPerTrade, 0.03);
   assertEquals(parsed.maxAllocatedCapitalUsdc, 0); // valeur par défaut
   assertEquals(parsed.profitReinvestmentPercent, 50.0); // valeur par défaut
+  assertEquals(parsed.isBotRunning, true); // valeur par défaut
+  assertEquals(parsed.isBotOnline, false); // valeur par défaut
 });
 
 Deno.test("RiskConfigSchema - valide les paramètres d'allocation de capital et réinvestissement", () => {
@@ -128,10 +130,12 @@ Deno.test("UpdateRiskConfigInputSchema - valide une mise à jour partielle", () 
   const partial = {
     maxSlippagePercent: 1.5,
     dryRun: false,
+    isBotRunning: false,
   };
   const parsed = UpdateRiskConfigInputSchema.parse(partial);
   assertEquals(parsed.maxSlippagePercent, 1.5);
   assertEquals(parsed.dryRun, false);
+  assertEquals(parsed.isBotRunning, false);
 });
 
 Deno.test("DetectedTradeSchema - valide un trade détecté complet", () => {

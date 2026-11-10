@@ -34,6 +34,8 @@ export const RiskConfigSchema = z
       .min(0, "Le pourcentage de réinvestissement doit être entre 0% et 100%")
       .max(100, "Le pourcentage de réinvestissement ne peut pas dépasser 100%")
       .default(50.0),
+    isBotRunning: z.boolean().default(true),
+    isBotOnline: z.boolean().default(false),
   })
   .refine((data) => data.minPrice < data.maxPrice, {
     message:
@@ -55,6 +57,7 @@ export const UpdateRiskConfigInputSchema = z
     dryRun: z.boolean().optional(),
     maxAllocatedCapitalUsdc: z.number().min(0).optional(),
     profitReinvestmentPercent: z.number().min(0).max(100).optional(),
+    isBotRunning: z.boolean().optional(),
   })
   .refine(
     (data) => {
