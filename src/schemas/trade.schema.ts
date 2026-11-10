@@ -48,6 +48,7 @@ export const ExecutedTradeSchema = z.object({
   detectedTradeId: z.string().min(1, "La référence au trade détecté est requise"),
   targetAddress: EthereumAddressSchema,
   conditionId: z.string().min(1, "L'identifiant de condition est requis"),
+  assetAddress: z.string().optional(),
   marketSlug: z.string().optional(),
   marketQuestion: z.string().optional(),
   outcomeLabel: z.string().optional(),
