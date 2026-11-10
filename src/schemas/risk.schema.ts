@@ -25,7 +25,10 @@ export const RiskConfigSchema = z
       .max(0.99, "La cote maximale ne peut pas dépasser 0.99 (99%)"),
     copySellOrders: z.boolean(),
     dryRun: z.boolean(),
-    maxAllocatedCapitalUsdc: z.number().min(0, "Le capital alloué doit être positif ou nul").default(0),
+    maxAllocatedCapitalUsdc: z
+      .number()
+      .min(0, "Le capital alloué doit être positif ou nul")
+      .default(0),
     profitReinvestmentPercent: z
       .number()
       .min(0, "Le pourcentage de réinvestissement doit être entre 0% et 100%")
