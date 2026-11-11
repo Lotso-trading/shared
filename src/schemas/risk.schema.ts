@@ -25,6 +25,10 @@ export const RiskConfigSchema = z
       .max(0.99, "La cote maximale ne peut pas dépasser 0.99 (99%)"),
     copySellOrders: z.boolean(),
     dryRun: z.boolean(),
+    simulatedBalanceUsdc: z
+      .number()
+      .min(0, "Le solde simulé doit être positif ou nul")
+      .default(1000.0),
     maxAllocatedCapitalUsdc: z
       .number()
       .min(0, "Le capital alloué doit être positif ou nul")
@@ -55,6 +59,7 @@ export const UpdateRiskConfigInputSchema = z
     maxPrice: z.number().min(0.5).max(0.99).optional(),
     copySellOrders: z.boolean().optional(),
     dryRun: z.boolean().optional(),
+    simulatedBalanceUsdc: z.number().min(0).optional(),
     maxAllocatedCapitalUsdc: z.number().min(0).optional(),
     profitReinvestmentPercent: z.number().min(0).max(100).optional(),
     isBotRunning: z.boolean().optional(),
@@ -83,3 +88,16 @@ export const ValidationResultSchema = z.discriminatedUnion("isValid", [
     reason: z.string().min(1, "Le motif du rejet est obligatoire"),
   }),
 ]);
+
+export const WalletAdjustmentInputSchema = z.object({
+  amountUsdc: PositiveNumberSchema,
+  action: z.enum(["DEPOSIT", "WITHDRAW"]),
+});
+
+export const WalletDepositInputSchema = z.object({
+  amountUsdc: PositiveNumberSchema,
+});
+
+export const WalletWithdrawInputSchema = z.object({
+  amountUsdc: PositiveNumberSchema,
+});

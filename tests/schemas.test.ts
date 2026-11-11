@@ -11,6 +11,7 @@ import {
   PolymarketRawActivityTradeSchema,
   RiskConfigSchema,
   UpdateRiskConfigInputSchema,
+  WalletAdjustmentInputSchema,
 } from "../src/index.ts";
 
 Deno.test("EthereumAddressSchema - valide et normalise en minuscules", () => {
@@ -130,12 +131,44 @@ Deno.test("UpdateRiskConfigInputSchema - valide une mise à jour partielle", () 
   const partial = {
     maxSlippagePercent: 1.5,
     dryRun: false,
+    simulatedBalanceUsdc: 2500.0,
     isBotRunning: false,
   };
   const parsed = UpdateRiskConfigInputSchema.parse(partial);
   assertEquals(parsed.maxSlippagePercent, 1.5);
   assertEquals(parsed.dryRun, false);
+  assertEquals(parsed.simulatedBalanceUsdc, 2500.0);
   assertEquals(parsed.isBotRunning, false);
+});
+
+Deno.test("WalletAdjustmentInputSchema - valide les dépôts et retraits", () => {
+  const deposit = WalletAdjustmentInputSchema.parse({
+    amountUsdc: 150.0,
+    action: "DEPOSIT",
+  });
+  assertEquals(deposit.amountUsdc, 150.0);
+  assertEquals(deposit.action, "DEPOSIT");
+
+  const withdraw = WalletAdjustmentInputSchema.parse({
+    amountUsdc: 75.5,
+    action: "WITHDRAW",
+  });
+  assertEquals(withdraw.amountUsdc, 75.5);
+  assertEquals(withdraw.action, "WITHDRAW");
+
+  // Rejette les montants négatifs ou nuls et les actions invalides
+  assertThrows(
+    () => WalletAdjustmentInputSchema.parse({ amountUsdc: -10, action: "DEPOSIT" }),
+    Error
+  );
+  assertThrows(
+    () => WalletAdjustmentInputSchema.parse({ amountUsdc: 0, action: "DEPOSIT" }),
+    Error
+  );
+  assertThrows(
+    () => WalletAdjustmentInputSchema.parse({ amountUsdc: 50, action: "TRANSFER" }),
+    Error
+  );
 });
 
 Deno.test("DetectedTradeSchema - valide un trade détecté complet", () => {
