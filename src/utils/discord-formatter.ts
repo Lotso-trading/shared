@@ -38,20 +38,34 @@ export function buildClosedPositionEmbed(
   targetAlias?: string
 ): DiscordWebhookPayload {
   const invested = position.totalInvestedUsdc;
+  const isExplicitWin = position.closeReason === "RESOLVED_WIN";
+
+  // En cas de victoire sur marché résolu, le payout par part est contractuellement de 1.000 USDC.
+  // On garantit que le payout reflète fidèlement la totalité des parts détenues.
+  const nominalWinPayout = isExplicitWin
+    ? Math.round(position.totalShares * 100) / 100
+    : undefined;
+
   const payout =
-    position.settledPayoutUsdc !== undefined
-      ? position.settledPayoutUsdc
-      : position.realizedPnlUsdc !== undefined
-        ? Math.max(0, invested + position.realizedPnlUsdc)
-        : 0;
+    nominalWinPayout !== undefined
+      ? nominalWinPayout
+      : position.settledPayoutUsdc !== undefined
+        ? position.settledPayoutUsdc
+        : position.realizedPnlUsdc !== undefined
+          ? Math.max(0, invested + position.realizedPnlUsdc)
+          : 0;
 
   const realizedPnl =
-    position.realizedPnlUsdc !== undefined ? position.realizedPnlUsdc : payout - invested;
+    nominalWinPayout !== undefined
+      ? nominalWinPayout - invested
+      : position.realizedPnlUsdc !== undefined
+        ? position.realizedPnlUsdc
+        : payout - invested;
 
   const roiPercent = invested > 0 ? (realizedPnl / invested) * 100 : 0;
   const pnlSign = realizedPnl >= 0 ? "+" : "";
 
-  const isWin = position.closeReason === "RESOLVED_WIN" || (realizedPnl > 0 && payout > 0);
+  const isWin = isExplicitWin || (realizedPnl > 0 && payout > 0);
   const isLoss =
     position.closeReason === "RESOLVED_LOSS" ||
     (realizedPnl < 0 && (payout === 0 || position.closeReason !== "WHALE_SELL"));
@@ -139,18 +153,18 @@ export function buildClosedPositionEmbed(
             inline: true,
           },
           {
-            name: "Cash Récupéré (Payout)",
+            name: "Cash Récupéré (Payout Brut)",
             value: `**${payout.toFixed(2)} USDC**`,
             inline: true,
           },
           {
-            name: "Gains Réalisés (PnL Net)",
+            name: "Gain Net (PnL)",
             value: `**${pnlSign}${realizedPnl.toFixed(2)} USDC** (${pnlSign}${roiPercent.toFixed(1)}%)`,
             inline: true,
           },
           {
             name: "Parts Détenues",
-            value: `${position.totalShares.toFixed(1)} parts`,
+            value: `${position.totalShares.toFixed(2)} parts`,
             inline: true,
           },
           {

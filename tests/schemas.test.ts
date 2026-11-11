@@ -293,6 +293,42 @@ Deno.test("buildClosedPositionEmbed - construit et valide un payload pour une vi
   assertEquals(parsed.embeds[0]?.color, 0x00c853);
 });
 
+Deno.test("buildClosedPositionEmbed - garantit la cohérence du Payout et PnL sur RESOLVED_WIN même si les champs en base étaient désynchronisés", () => {
+  const positionDesync = {
+    id: "pos-desync-1",
+    conditionId: "0x823cec29f6a0f5e45926c045d7bc310f5dafe674d79933d9c519327b0f1b94d1",
+    assetAddress: "0x29970436340857700276269059517904531209554568958844470089010288759046371916280",
+    marketSlug: "atp-geerts-nagal-2026-11-11",
+    marketQuestion: "Hersonissos 3: Michael Geerts vs Sumit Nagal",
+    outcomeLabel: "Sumit Nagal",
+    status: "CLOSED" as const,
+    closeReason: "RESOLVED_WIN" as const,
+    settledPayoutUsdc: 4.45, // Valeur périmée
+    realizedPnlUsdc: 0.62,   // Valeur périmée
+    totalShares: 8.5,        // Valeur à jour
+    avgEntryPrice: 0.689,
+    totalInvestedUsdc: 5.86, // Valeur à jour
+    currentMarketPrice: 1.0,
+    currentMarketValueUsdc: 8.5,
+    unrealizedPnlUsdc: 0,
+    unrealizedPnlPercent: 0,
+    targetAddress: "0x2005d16a84ceefa912d4e380cd32e7ff827875ea",
+    openedAt: Date.now() - 3600000,
+    closedAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+
+  const payload = buildClosedPositionEmbed(positionDesync, "RN1");
+  const fields = payload.embeds[0]!.fields!;
+  const payoutField = fields.find((f) => f.name.includes("Cash Récupéré"));
+  const pnlField = fields.find((f) => f.name.includes("Gain Net"));
+  const sharesField = fields.find((f) => f.name.includes("Parts Détenues"));
+
+  assertEquals(payoutField?.value, "**8.50 USDC**");
+  assertEquals(pnlField?.value.includes("+2.64 USDC"), true);
+  assertEquals(sharesField?.value, "8.50 parts");
+});
+
 Deno.test("buildClosedPositionsSummaryEmbed - construit et valide un payload de synthèse", () => {
   const summary = {
     totalCount: 28,
