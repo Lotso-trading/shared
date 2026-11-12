@@ -242,3 +242,68 @@ export function buildClosedPositionsSummaryEmbed(
     ],
   };
 }
+
+export function buildAutoRedeemEmbed(
+  position: OpenPosition,
+  txHash: string,
+  isDryRun = false
+): DiscordWebhookPayload {
+  const dryRunBadge = isDryRun ? " [SIMULATION]" : " [RÉEL]";
+  const payout =
+    position.settledPayoutUsdc !== undefined
+      ? position.settledPayoutUsdc
+      : Math.round(position.totalShares * 100) / 100;
+  const marketSlug = position.marketSlug || "";
+  const marketUrl = marketSlug
+    ? `https://polymarket.com/event/${marketSlug}`
+    : "https://polymarket.com";
+  const question = position.marketQuestion || "Marché Polymarket";
+
+  const isPolygonscanTx = txHash.startsWith("0x") && txHash.length >= 64;
+  const txDisplay = isPolygonscanTx
+    ? `[\`${txHash.slice(0, 10)}...${txHash.slice(-8)}\`](https://polygonscan.com/tx/${txHash})`
+    : `\`${txHash}\``;
+
+  return {
+    username: "Lotso",
+    embeds: [
+      {
+        title: `⚡ Auto-Redeem : Gain Réclamé avec Succès !${dryRunBadge}`,
+        url: marketUrl,
+        description: `Réclamation automatique des gains sur **Polymarket**`,
+        color: 0x00c853, // Vert émeraude
+        fields: [
+          {
+            name: "Marché",
+            value: `[${question}](${marketUrl})`,
+            inline: false,
+          },
+          {
+            name: "Issue Gagnante",
+            value: `**${position.outcomeLabel}**`,
+            inline: true,
+          },
+          {
+            name: "Parts Converties",
+            value: `**${position.totalShares.toFixed(2)} parts**`,
+            inline: true,
+          },
+          {
+            name: "USDC Crédités au Portefeuille",
+            value: `**+${payout.toFixed(2)} USDC**`,
+            inline: true,
+          },
+          {
+            name: "Transaction de Rachat",
+            value: txDisplay,
+            inline: false,
+          },
+        ],
+        timestamp: new Date().toISOString(),
+        footer: {
+          text: "Lotso Copy-Trading • Auto-Redeem Engine",
+        },
+      },
+    ],
+  };
+}

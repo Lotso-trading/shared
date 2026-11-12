@@ -10,3 +10,9 @@ export interface ApiSuccessResponse<T> {
 }
 
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
+
+export interface PositionRedeemedPayload {
+  readonly conditionId: string;
+  readonly txHash: string;
+  readonly settledPayoutUsdc?: number;
+}
