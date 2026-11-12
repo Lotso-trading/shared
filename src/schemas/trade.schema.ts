@@ -93,7 +93,13 @@ export const PolymarketRawActivityTradeSchema = z
       .object({
         slug: z.string().optional(),
         question: z.string().optional(),
+        conditionId: z.string().optional(),
+        condition_id: z.string().optional(),
+        endDate: z.string().optional(),
+        end_date_iso: z.string().optional(),
+        game_start_time: z.string().optional(),
       })
+      .passthrough()
       .optional(),
     outcome: z.string().optional(),
     outcomeIndex: z.coerce.number().int().min(0).optional(),
