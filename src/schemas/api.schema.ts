@@ -10,6 +10,14 @@ export const PaginationQuerySchema = z.object({
   side: TradeSideSchema.optional(),
 });
 
+export const ClosedPositionsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1, "La page doit être >= 1").default(1),
+  limit: z.coerce.number().int().min(1).max(100, "La limite maximale est de 100").default(25),
+  status: z.enum(["ALL", "WIN", "LOSS"]).optional().default("ALL"),
+  since: z.coerce.number().int().min(0).optional(),
+});
+export type ClosedPositionsQuery = z.input<typeof ClosedPositionsQuerySchema>;
+
 export const ApiErrorResponseSchema = z.object({
   success: z.literal(false),
   error: z.object({

@@ -15,6 +15,7 @@ export const RiskConfigSchema = z
     maxExposurePerMarketUsdc: PositiveNumberSchema.default(150.0),
     maxExposurePerTargetUsdc: PositiveNumberSchema.default(300.0),
     minCashReserveUsdc: PositiveNumberSchema.default(5.0),
+    minTradeSizeUsdc: PositiveNumberSchema.default(2.0),
     minPrice: z
       .number()
       .min(0.01, "La cote minimale doit être au moins de 0.01 (1%)")
@@ -55,6 +56,7 @@ export const UpdateRiskConfigInputSchema = z
     maxExposurePerMarketUsdc: PositiveNumberSchema.optional(),
     maxExposurePerTargetUsdc: PositiveNumberSchema.optional(),
     minCashReserveUsdc: PositiveNumberSchema.optional(),
+    minTradeSizeUsdc: PositiveNumberSchema.optional(),
     minPrice: z.number().min(0.01).max(0.5).optional(),
     maxPrice: z.number().min(0.5).max(0.99).optional(),
     copySellOrders: z.boolean().optional(),

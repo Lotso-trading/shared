@@ -3,6 +3,7 @@ import {
   AddTargetInputSchema,
   buildClosedPositionEmbed,
   buildClosedPositionsSummaryEmbed,
+  ClosedPositionsQuerySchema,
   DetectedTradeSchema,
   DiscordWebhookPayloadSchema,
   EthereumAddressSchema,
@@ -259,6 +260,24 @@ Deno.test("PaginationQuerySchema - convertit et assigne les valeurs par défaut"
   assertEquals(parsedCustom.page, 3);
   assertEquals(parsedCustom.limit, 50);
   assertEquals(parsedCustom.side, "BUY");
+});
+
+Deno.test("ClosedPositionsQuerySchema - valide et parse les filtres et la pagination", () => {
+  const parsedDefault = ClosedPositionsQuerySchema.parse({});
+  assertEquals(parsedDefault.page, 1);
+  assertEquals(parsedDefault.limit, 25);
+  assertEquals(parsedDefault.status, "ALL");
+
+  const parsedCustom = ClosedPositionsQuerySchema.parse({
+    page: "2",
+    limit: "50",
+    status: "WIN",
+    since: "1730000000000",
+  });
+  assertEquals(parsedCustom.page, 2);
+  assertEquals(parsedCustom.limit, 50);
+  assertEquals(parsedCustom.status, "WIN");
+  assertEquals(parsedCustom.since, 1730000000000);
 });
 
 Deno.test("buildClosedPositionEmbed - construit et valide un payload pour une victoire", () => {
