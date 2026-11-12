@@ -323,8 +323,8 @@ Deno.test("buildClosedPositionEmbed - garantit la cohérence du Payout et PnL su
     status: "CLOSED" as const,
     closeReason: "RESOLVED_WIN" as const,
     settledPayoutUsdc: 4.45, // Valeur périmée
-    realizedPnlUsdc: 0.62,   // Valeur périmée
-    totalShares: 8.5,        // Valeur à jour
+    realizedPnlUsdc: 0.62, // Valeur périmée
+    totalShares: 8.5, // Valeur à jour
     avgEntryPrice: 0.689,
     totalInvestedUsdc: 5.86, // Valeur à jour
     currentMarketPrice: 1.0,
@@ -338,7 +338,7 @@ Deno.test("buildClosedPositionEmbed - garantit la cohérence du Payout et PnL su
   };
 
   const payload = buildClosedPositionEmbed(positionDesync, "RN1");
-  const fields = payload.embeds[0]!.fields!;
+  const fields = payload.embeds[0]?.fields ?? [];
   const payoutField = fields.find((f) => f.name.includes("Cash Récupéré"));
   const pnlField = fields.find((f) => f.name.includes("Gain Net"));
   const sharesField = fields.find((f) => f.name.includes("Parts Détenues"));

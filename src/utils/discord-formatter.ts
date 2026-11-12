@@ -42,9 +42,7 @@ export function buildClosedPositionEmbed(
 
   // En cas de victoire sur marché résolu, le payout par part est contractuellement de 1.000 USDC.
   // On garantit que le payout reflète fidèlement la totalité des parts détenues.
-  const nominalWinPayout = isExplicitWin
-    ? Math.round(position.totalShares * 100) / 100
-    : undefined;
+  const nominalWinPayout = isExplicitWin ? Math.round(position.totalShares * 100) / 100 : undefined;
 
   const payout =
     nominalWinPayout !== undefined

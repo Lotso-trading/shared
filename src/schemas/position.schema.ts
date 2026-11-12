@@ -29,6 +29,7 @@ export const OpenPositionSchema = z.object({
   closeReason: PositionCloseReasonSchema.optional(),
   settledPayoutUsdc: z.number().optional(),
   realizedPnlUsdc: z.number().optional(),
+  settleTxHash: z.string().optional(),
   closedAt: UnixTimestampSchema.optional(),
   totalShares: PositiveNumberSchema,
   avgEntryPrice: ProbabilityPriceSchema,
