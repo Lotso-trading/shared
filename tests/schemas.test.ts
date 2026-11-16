@@ -214,7 +214,7 @@ Deno.test("ExecutedTradeSchema - valide un trade exécuté avec slippage", () =>
   assertEquals(parsed.status, "FILLED");
 });
 
-Deno.test("PolymarketRawActivityTradeSchema - convertit les chaînes numériques de l'API Polymarket", () => {
+Deno.test("PolymarketRawActivityTradeSchema - convertit les chaînes numériques et conserve event_slug", () => {
   const rawApiData = {
     id: "act-1",
     timestamp: "1731000000000",
@@ -223,12 +223,19 @@ Deno.test("PolymarketRawActivityTradeSchema - convertit les chaînes numériques
     price: "0.45",
     size: "200.5",
     asset: "0xE111180000d2663C0091e4f400237545B87B996B",
+    event_slug: "anthropic-ipo-date",
+    market: {
+      slug: "will-anthropic-ipo-in-november-2026",
+      event_slug: "anthropic-ipo-date",
+    },
   };
   const parsed = PolymarketRawActivityTradeSchema.parse(rawApiData);
   assertEquals(parsed.side, "BUY");
   assertEquals(parsed.price, 0.45);
   assertEquals(parsed.size, 200.5);
   assertEquals(parsed.timestamp, 1731000000000);
+  assertEquals(parsed.event_slug, "anthropic-ipo-date");
+  assertEquals(parsed.market?.event_slug, "anthropic-ipo-date");
 });
 
 Deno.test("DiscordWebhookPayloadSchema - valide un payload d'alerte", () => {

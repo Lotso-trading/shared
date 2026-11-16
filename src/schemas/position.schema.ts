@@ -22,6 +22,7 @@ export const OpenPositionSchema = z.object({
   conditionId: z.string().min(1, "L'identifiant de condition est requis"),
   assetAddress: EthereumAddressSchema,
   marketSlug: z.string().min(1, "Le slug du marché est requis"),
+  eventSlug: z.string().optional(),
   marketQuestion: z.string().min(1, "La question du marché est requise"),
   outcomeLabel: z.string().min(1, "Le libellé de l'issue est requis"),
   endDate: z.string().optional(),
