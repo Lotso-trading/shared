@@ -31,6 +31,8 @@ export const TargetTraderStatsSchema = z.object({
   totalCopiedVolumeUsdc: NonNegativeNumberSchema,
   realizedPnlUsdc: z.number(),
   winRatePercent: RatioPercentSchema,
+  wonTrades: NonNegativeNumberSchema.optional(),
+  lostTrades: NonNegativeNumberSchema.optional(),
 });
 
 export const TargetTraderSchema = z.object({
