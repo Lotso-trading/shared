@@ -1,14 +1,22 @@
 {
-  "name": "@polymarket-copy/shared",
-  "version": "1.0.0",
-  "exports": "./src/index.ts",
-  "imports": {
-    "zod": "npm:zod@^4.6.7"
-  },
-  "compilerOptions": {
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "noUncheckedIndexedAccess": true
-  }
+    "name": "@lotso-trading/shared",
+    "version": "1.0.0",
+    "build": "4",
+    "exports": "./src/index.ts",
+    "imports": {
+        "zod": "npm:zod@^4.6.7"
+    },
+    "compilerOptions": {
+        "strict": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "noUncheckedIndexedAccess": true
+    },
+    "tasks": {
+        "lint": "deno run -A npm:@biomejs/biome check .",
+        "format": "deno run -A npm:@biomejs/biome format --write .",
+        "check": "deno check src/index.ts",
+        "test": "deno test -A tests/",
+        "build:npm": "deno run -A scripts/build-npm.ts"
+    }
 }

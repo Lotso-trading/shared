@@ -1,9 +1,9 @@
 import type { z } from "zod";
 import type {
-  DiscordEmbedFieldSchema,
-  DiscordEmbedFooterSchema,
-  DiscordEmbedSchema,
-  DiscordWebhookPayloadSchema,
+    DiscordEmbedFieldSchema,
+    DiscordEmbedFooterSchema,
+    DiscordEmbedSchema,
+    DiscordWebhookPayloadSchema,
 } from "../schemas/discord.schema.ts";
 
 export type DiscordEmbedField = z.infer<typeof DiscordEmbedFieldSchema>;

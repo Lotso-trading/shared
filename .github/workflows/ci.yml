@@ -1,0 +1,110 @@
+name: CI / CD - Shared Contracts
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+    branches:
+      - develop
+      - main
+
+permissions:
+  contents: write
+  packages: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  validate:
+    name: Lint, Type-Check & Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Lint (Biome)
+        run: deno task lint
+
+      - name: Type-Check (deno check)
+        run: deno task check
+
+      - name: Run Unit Tests
+        run: deno task test
+
+  release-and-publish:
+    name: Release & NPM Publish
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Setup Node.js (GitHub Packages)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@lotso-trading"
+
+      # 1. Vérification du build en Pull Request
+      - name: Verify Build (Pull Request)
+        if: github.event_name == 'pull_request'
+        run: |
+          deno task build:npm
+          cd npm
+          npm pack --dry-run
+          echo "✅ Package artifact successfully verified on PR."
+
+      # 2. Branche develop : Build déterministe {version}-develop.{build} + Publication + Pre-Release détaillée
+      - name: Build & Publish Develop Prerelease
+        if: github.event_name == 'push' && github.ref_name == 'develop'
+        run: |
+          VERSION=$(node -e 'const j=require("./deno.json"); console.log(j.version || "1.0.0")')
+          BUILD=$(node -e 'const j=require("./deno.json"); console.log(j.build || "1")')
+          RELEASE_VERSION="${VERSION}-develop.${BUILD}"
+          TAG="v${RELEASE_VERSION}"
+          echo "📦 Packaging develop version: ${RELEASE_VERSION} (Tag: ${TAG})"
+
+          deno task build:npm --version "${RELEASE_VERSION}"
+
+          cd npm
+          npm publish
+          cd ..
+
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --generate-notes \
+            --prerelease || echo "Release $TAG already exists, skipping."
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 3. Branche main : Semantic-Release officiel (Conventional Commits, calcul SemVer, changelog détaillé)
+      - name: Semantic Release on Main
+        if: github.event_name == 'push' && github.ref_name == 'main'
+        run: |
+          npx --yes \
+            -p semantic-release@^24.2.0 \
+            -p @semantic-release/exec@^6.0.3 \
+            -p @semantic-release/github@^11.0.0 \
+            -p conventional-changelog-conventionalcommits@^8.0.0 \
+            semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

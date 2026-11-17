@@ -6,3 +6,4 @@ export * from "./types/risk.ts";
 export * from "./types/target.ts";
 export * from "./types/trade.ts";
 export * from "./utils/discord-formatter.ts";
+export * from "./utils/polymarket-url.ts";

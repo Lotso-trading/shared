@@ -1,10 +1,10 @@
 import type { z } from "zod";
 import type {
-  DetectedTradeSchema,
-  ExecutedTradeSchema,
-  PolymarketRawActivityTradeSchema,
-  TradeSideSchema,
-  TradeStatusSchema,
+    DetectedTradeSchema,
+    ExecutedTradeSchema,
+    PolymarketRawActivityTradeSchema,
+    TradeSideSchema,
+    TradeStatusSchema,
 } from "../schemas/trade.schema.ts";
 
 export type TradeSide = z.infer<typeof TradeSideSchema>;
