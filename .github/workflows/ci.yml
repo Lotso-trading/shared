@@ -1,0 +1,75 @@
+name: CI / CD - Shared Contracts
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+    branches:
+      - develop
+      - main
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  validate:
+    name: Lint, Type-Check & Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Lint (Biome)
+        run: deno task lint
+
+      - name: Type-Check (deno check)
+        run: deno task check
+
+      - name: Run Unit Tests
+        run: deno task test
+
+  build-and-publish:
+    name: Build NPM & Publish to GitHub Packages
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Setup Node.js (GitHub Packages)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@lotso-trading"
+
+      - name: Build NPM Package with Smoke Test
+        run: deno task build:npm
+
+      - name: Pack Verification (Pull Request)
+        if: github.event_name == 'pull_request'
+        run: |
+          cd npm
+          npm pack --dry-run
+          echo "✅ Package artifact successfully verified."
+
+      - name: Publish to GitHub Packages (Push develop / main)
+        if: github.event_name == 'push'
+        run: |
+          cd npm
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

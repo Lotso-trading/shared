@@ -24,7 +24,7 @@ const INVALID_QUESTIONS = new Set([
 
 /**
  * Returns a reliable Polymarket URL for a position or market.
- * 
+ *
  * Logic:
  * 1. If a valid eventSlug is present, points directly to https://polymarket.com/event/{eventSlug} (or /event/{eventSlug}/{marketSlug}).
  * 2. If only a valid marketSlug is present, points to https://polymarket.com/market/{marketSlug} which Polymarket natively 307-redirects to the event page.
@@ -39,7 +39,11 @@ export function getPolymarketUrl(target?: PolymarketUrlTarget | null): string {
 
   // 1. Valid eventSlug
   if (eventSlug && !INVALID_SLUGS.has(eventSlug.toLowerCase())) {
-    if (marketSlug && !INVALID_SLUGS.has(marketSlug.toLowerCase()) && marketSlug.toLowerCase() !== eventSlug.toLowerCase()) {
+    if (
+      marketSlug &&
+      !INVALID_SLUGS.has(marketSlug.toLowerCase()) &&
+      marketSlug.toLowerCase() !== eventSlug.toLowerCase()
+    ) {
       return `https://polymarket.com/event/${eventSlug}/${marketSlug}`;
     }
     return `https://polymarket.com/event/${eventSlug}`;
