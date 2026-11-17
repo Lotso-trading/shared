@@ -41,7 +41,7 @@ jobs:
         run: deno task test
 
   release-and-publish:
-    name: Semantic-Release & NPM Publish
+    name: Release & NPM Publish
     needs: validate
     runs-on: ubuntu-latest
     steps:
@@ -58,10 +58,11 @@ jobs:
       - name: Setup Node.js (GitHub Packages)
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           registry-url: "https://npm.pkg.github.com"
           scope: "@lotso-trading"
 
+      # 1. Vérification du build en Pull Request
       - name: Verify Build (Pull Request)
         if: github.event_name == 'pull_request'
         run: |
@@ -70,8 +71,33 @@ jobs:
           npm pack --dry-run
           echo "✅ Package artifact successfully verified on PR."
 
-      - name: Automated Semantic Release & Publish (Push develop / main)
-        if: github.event_name == 'push'
+      # 2. Branche develop : Build déterministe {version}-develop.{build} + Publication + Pre-Release détaillée
+      - name: Build & Publish Develop Prerelease
+        if: github.event_name == 'push' && github.ref_name == 'develop'
+        run: |
+          VERSION=$(node -e 'const j=require("./deno.json"); console.log(j.version || "1.0.0")')
+          BUILD=$(node -e 'const j=require("./deno.json"); console.log(j.build || "1")')
+          RELEASE_VERSION="${VERSION}-develop.${BUILD}"
+          TAG="v${RELEASE_VERSION}"
+          echo "📦 Packaging develop version: ${RELEASE_VERSION} (Tag: ${TAG})"
+
+          deno task build:npm --version "${RELEASE_VERSION}"
+
+          cd npm
+          npm publish
+          cd ..
+
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --generate-notes \
+            --prerelease || echo "Release $TAG already exists, skipping."
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 3. Branche main : Semantic-Release officiel (Conventional Commits, calcul SemVer, changelog détaillé)
+      - name: Semantic Release on Main
+        if: github.event_name == 'push' && github.ref_name == 'main'
         run: |
           npx --yes \
             -p semantic-release@^24.2.0 \

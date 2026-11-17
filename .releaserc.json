@@ -1,12 +1,5 @@
 {
-    "branches": [
-        "main",
-        {
-            "name": "develop",
-            "prerelease": "develop",
-            "channel": "dev"
-        }
-    ],
+    "branches": ["main"],
     "plugins": [
         [
             "@semantic-release/commit-analyzer",
@@ -22,12 +15,27 @@
                 ]
             }
         ],
-        "@semantic-release/release-notes-generator",
+        [
+            "@semantic-release/release-notes-generator",
+            {
+                "preset": "conventionalcommits",
+                "presetConfig": {
+                    "types": [
+                        { "type": "feat", "section": "✨ Features" },
+                        { "type": "fix", "section": "🐛 Bug Fixes" },
+                        { "type": "perf", "section": "⚡ Performance Improvements" },
+                        { "type": "refactor", "section": "♻️ Code Refactoring" },
+                        { "type": "chore", "scope": "deps", "section": "📦 Dependencies" },
+                        { "type": "docs", "section": "📝 Documentation", "hidden": false }
+                    ]
+                }
+            }
+        ],
         [
             "@semantic-release/exec",
             {
                 "prepareCmd": "deno task build:npm --version ${nextRelease.version}",
-                "publishCmd": "cd npm && if [ \"${nextRelease.channel}\" = \"dev\" ] || [ \"$GITHUB_REF_NAME\" = \"develop\" ]; then npm publish --tag dev; else npm publish --tag latest; fi"
+                "publishCmd": "cd npm && npm publish"
             }
         ],
         "@semantic-release/github"
