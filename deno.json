@@ -1,7 +1,7 @@
 {
     "name": "@lotso-trading/shared",
     "version": "1.0.0",
-    "build": "2",
+    "build": "3",
     "exports": "./src/index.ts",
     "imports": {
         "zod": "npm:zod@^4.6.7"
