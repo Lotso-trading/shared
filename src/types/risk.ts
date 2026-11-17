@@ -1,11 +1,11 @@
 import type { z } from "zod";
 import type {
-  RiskConfigSchema,
-  UpdateRiskConfigInputSchema,
-  ValidationResultSchema,
-  WalletAdjustmentInputSchema,
-  WalletDepositInputSchema,
-  WalletWithdrawInputSchema,
+    RiskConfigSchema,
+    UpdateRiskConfigInputSchema,
+    ValidationResultSchema,
+    WalletAdjustmentInputSchema,
+    WalletDepositInputSchema,
+    WalletWithdrawInputSchema,
 } from "../schemas/risk.schema.ts";
 
 export type RiskConfig = z.infer<typeof RiskConfigSchema>;

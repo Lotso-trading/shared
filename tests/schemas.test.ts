@@ -1,375 +1,376 @@
 import { assertEquals, assertThrows } from "jsr:@std/assert";
 import {
-  AddTargetInputSchema,
-  buildClosedPositionEmbed,
-  buildClosedPositionsSummaryEmbed,
-  ClosedPositionsQuerySchema,
-  DetectedTradeSchema,
-  DiscordWebhookPayloadSchema,
-  EthereumAddressSchema,
-  ExecutedTradeSchema,
-  PaginationQuerySchema,
-  PolymarketRawActivityTradeSchema,
-  RiskConfigSchema,
-  UpdateRiskConfigInputSchema,
-  WalletAdjustmentInputSchema,
+    AddTargetInputSchema,
+    buildClosedPositionEmbed,
+    buildClosedPositionsSummaryEmbed,
+    ClosedPositionsQuerySchema,
+    DetectedTradeSchema,
+    DiscordWebhookPayloadSchema,
+    EthereumAddressSchema,
+    ExecutedTradeSchema,
+    PaginationQuerySchema,
+    PolymarketRawActivityTradeSchema,
+    RiskConfigSchema,
+    UpdateRiskConfigInputSchema,
+    WalletAdjustmentInputSchema,
 } from "../src/index.ts";
 
 Deno.test("EthereumAddressSchema - valide et normalise en minuscules", () => {
-  const mixedCase = "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E";
-  const result = EthereumAddressSchema.parse(mixedCase);
-  assertEquals(result, mixedCase.toLowerCase());
+    const mixedCase = "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E";
+    const result = EthereumAddressSchema.parse(mixedCase);
+    assertEquals(result, mixedCase.toLowerCase());
 });
 
 Deno.test("EthereumAddressSchema - rejette les adresses invalides", () => {
-  assertThrows(() => EthereumAddressSchema.parse("0xinvalid"), Error);
-  assertThrows(
-    () => EthereumAddressSchema.parse("4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E"),
-    Error
-  );
-  assertThrows(() => EthereumAddressSchema.parse("0x123"), Error);
+    assertThrows(() => EthereumAddressSchema.parse("0xinvalid"), Error);
+    assertThrows(
+        () => EthereumAddressSchema.parse("4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E"),
+        Error
+    );
+    assertThrows(() => EthereumAddressSchema.parse("0x123"), Error);
 });
 
 Deno.test("AddTargetInputSchema - applique les valeurs par défaut", () => {
-  const input = {
-    address: "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E",
-    alias: "Whale Alpha",
-  };
-  const parsed = AddTargetInputSchema.parse(input);
-  assertEquals(parsed.enabled, true);
-  assertEquals(parsed.weightMultiplier, 1.0);
-  assertEquals(parsed.address, input.address.toLowerCase());
+    const input = {
+        address: "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E",
+        alias: "Whale Alpha",
+    };
+    const parsed = AddTargetInputSchema.parse(input);
+    assertEquals(parsed.enabled, true);
+    assertEquals(parsed.weightMultiplier, 1.0);
+    assertEquals(parsed.address, input.address.toLowerCase());
 });
 
 Deno.test("AddTargetInputSchema - rejette un alias vide ou un multiplicateur négatif", () => {
-  assertThrows(
-    () =>
-      AddTargetInputSchema.parse({
-        address: "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E",
-        alias: "",
-      }),
-    Error
-  );
-  assertThrows(
-    () =>
-      AddTargetInputSchema.parse({
-        address: "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E",
-        alias: "Whale Alpha",
-        weightMultiplier: -1,
-      }),
-    Error
-  );
+    assertThrows(
+        () =>
+            AddTargetInputSchema.parse({
+                address: "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E",
+                alias: "",
+            }),
+        Error
+    );
+    assertThrows(
+        () =>
+            AddTargetInputSchema.parse({
+                address: "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E",
+                alias: "Whale Alpha",
+                weightMultiplier: -1,
+            }),
+        Error
+    );
 });
 
 Deno.test("RiskConfigSchema - valide une configuration conforme", () => {
-  const validConfig = {
-    balancePercentPerTrade: 0.03, // 3%
-    maxSlippagePercent: 2.0, // 2%
-    maxCapPerTradeUsdc: 50.0,
-    minPrice: 0.05,
-    maxPrice: 0.9,
-    copySellOrders: true,
-    dryRun: true,
-  };
-  const parsed = RiskConfigSchema.parse(validConfig);
-  assertEquals(parsed.balancePercentPerTrade, 0.03);
-  assertEquals(parsed.maxAllocatedCapitalUsdc, 0); // valeur par défaut
-  assertEquals(parsed.profitReinvestmentPercent, 50.0); // valeur par défaut
-  assertEquals(parsed.isBotRunning, true); // valeur par défaut
-  assertEquals(parsed.isBotOnline, false); // valeur par défaut
-});
-
-Deno.test("RiskConfigSchema - valide les paramètres d'allocation de capital et réinvestissement", () => {
-  const customConfig = {
-    balancePercentPerTrade: 0.05,
-    maxSlippagePercent: 1.0,
-    maxCapPerTradeUsdc: 25.0,
-    minPrice: 0.1,
-    maxPrice: 0.8,
-    copySellOrders: true,
-    dryRun: false,
-    maxAllocatedCapitalUsdc: 100.0,
-    profitReinvestmentPercent: 50.0,
-  };
-  const parsed = RiskConfigSchema.parse(customConfig);
-  assertEquals(parsed.maxAllocatedCapitalUsdc, 100.0);
-  assertEquals(parsed.profitReinvestmentPercent, 50.0);
-});
-
-Deno.test("RiskConfigSchema - rejette un pourcentage de solde excessif (> 20%)", () => {
-  assertThrows(
-    () =>
-      RiskConfigSchema.parse({
-        balancePercentPerTrade: 0.5, // 50% non autorisé par sécurité
-        maxSlippagePercent: 2.0,
+    const validConfig = {
+        balancePercentPerTrade: 0.03, // 3%
+        maxSlippagePercent: 2.0, // 2%
         maxCapPerTradeUsdc: 50.0,
         minPrice: 0.05,
         maxPrice: 0.9,
         copySellOrders: true,
         dryRun: true,
-      }),
-    Error
-  );
+    };
+    const parsed = RiskConfigSchema.parse(validConfig);
+    assertEquals(parsed.balancePercentPerTrade, 0.03);
+    assertEquals(parsed.maxAllocatedCapitalUsdc, 0); // valeur par défaut
+    assertEquals(parsed.profitReinvestmentPercent, 50.0); // valeur par défaut
+    assertEquals(parsed.isBotRunning, true); // valeur par défaut
+    assertEquals(parsed.isBotOnline, false); // valeur par défaut
+});
+
+Deno.test("RiskConfigSchema - valide les paramètres d'allocation de capital et réinvestissement", () => {
+    const customConfig = {
+        balancePercentPerTrade: 0.05,
+        maxSlippagePercent: 1.0,
+        maxCapPerTradeUsdc: 25.0,
+        minPrice: 0.1,
+        maxPrice: 0.8,
+        copySellOrders: true,
+        dryRun: false,
+        maxAllocatedCapitalUsdc: 100.0,
+        profitReinvestmentPercent: 50.0,
+    };
+    const parsed = RiskConfigSchema.parse(customConfig);
+    assertEquals(parsed.maxAllocatedCapitalUsdc, 100.0);
+    assertEquals(parsed.profitReinvestmentPercent, 50.0);
+});
+
+Deno.test("RiskConfigSchema - rejette un pourcentage de solde excessif (> 20%)", () => {
+    assertThrows(
+        () =>
+            RiskConfigSchema.parse({
+                balancePercentPerTrade: 0.5, // 50% non autorisé par sécurité
+                maxSlippagePercent: 2.0,
+                maxCapPerTradeUsdc: 50.0,
+                minPrice: 0.05,
+                maxPrice: 0.9,
+                copySellOrders: true,
+                dryRun: true,
+            }),
+        Error
+    );
 });
 
 Deno.test("RiskConfigSchema - rejette si minPrice >= maxPrice", () => {
-  assertThrows(
-    () =>
-      RiskConfigSchema.parse({
-        balancePercentPerTrade: 0.03,
-        maxSlippagePercent: 2.0,
-        maxCapPerTradeUsdc: 50.0,
-        minPrice: 0.85,
-        maxPrice: 0.6, // Erreur : minPrice > maxPrice
-        copySellOrders: true,
-        dryRun: true,
-      }),
-    Error
-  );
+    assertThrows(
+        () =>
+            RiskConfigSchema.parse({
+                balancePercentPerTrade: 0.03,
+                maxSlippagePercent: 2.0,
+                maxCapPerTradeUsdc: 50.0,
+                minPrice: 0.85,
+                maxPrice: 0.6, // Erreur : minPrice > maxPrice
+                copySellOrders: true,
+                dryRun: true,
+            }),
+        Error
+    );
 });
 
 Deno.test("UpdateRiskConfigInputSchema - valide une mise à jour partielle", () => {
-  const partial = {
-    maxSlippagePercent: 1.5,
-    dryRun: false,
-    simulatedBalanceUsdc: 2500.0,
-    isBotRunning: false,
-  };
-  const parsed = UpdateRiskConfigInputSchema.parse(partial);
-  assertEquals(parsed.maxSlippagePercent, 1.5);
-  assertEquals(parsed.dryRun, false);
-  assertEquals(parsed.simulatedBalanceUsdc, 2500.0);
-  assertEquals(parsed.isBotRunning, false);
+    const partial = {
+        maxSlippagePercent: 1.5,
+        dryRun: false,
+        simulatedBalanceUsdc: 2500.0,
+        isBotRunning: false,
+    };
+    const parsed = UpdateRiskConfigInputSchema.parse(partial);
+    assertEquals(parsed.maxSlippagePercent, 1.5);
+    assertEquals(parsed.dryRun, false);
+    assertEquals(parsed.simulatedBalanceUsdc, 2500.0);
+    assertEquals(parsed.isBotRunning, false);
 });
 
 Deno.test("WalletAdjustmentInputSchema - valide les dépôts et retraits", () => {
-  const deposit = WalletAdjustmentInputSchema.parse({
-    amountUsdc: 150.0,
-    action: "DEPOSIT",
-  });
-  assertEquals(deposit.amountUsdc, 150.0);
-  assertEquals(deposit.action, "DEPOSIT");
+    const deposit = WalletAdjustmentInputSchema.parse({
+        amountUsdc: 150.0,
+        action: "DEPOSIT",
+    });
+    assertEquals(deposit.amountUsdc, 150.0);
+    assertEquals(deposit.action, "DEPOSIT");
 
-  const withdraw = WalletAdjustmentInputSchema.parse({
-    amountUsdc: 75.5,
-    action: "WITHDRAW",
-  });
-  assertEquals(withdraw.amountUsdc, 75.5);
-  assertEquals(withdraw.action, "WITHDRAW");
+    const withdraw = WalletAdjustmentInputSchema.parse({
+        amountUsdc: 75.5,
+        action: "WITHDRAW",
+    });
+    assertEquals(withdraw.amountUsdc, 75.5);
+    assertEquals(withdraw.action, "WITHDRAW");
 
-  // Rejette les montants négatifs ou nuls et les actions invalides
-  assertThrows(
-    () => WalletAdjustmentInputSchema.parse({ amountUsdc: -10, action: "DEPOSIT" }),
-    Error
-  );
-  assertThrows(
-    () => WalletAdjustmentInputSchema.parse({ amountUsdc: 0, action: "DEPOSIT" }),
-    Error
-  );
-  assertThrows(
-    () => WalletAdjustmentInputSchema.parse({ amountUsdc: 50, action: "TRANSFER" }),
-    Error
-  );
+    // Rejette les montants négatifs ou nuls et les actions invalides
+    assertThrows(
+        () => WalletAdjustmentInputSchema.parse({ amountUsdc: -10, action: "DEPOSIT" }),
+        Error
+    );
+    assertThrows(
+        () => WalletAdjustmentInputSchema.parse({ amountUsdc: 0, action: "DEPOSIT" }),
+        Error
+    );
+    assertThrows(
+        () => WalletAdjustmentInputSchema.parse({ amountUsdc: 50, action: "TRANSFER" }),
+        Error
+    );
 });
 
 Deno.test("DetectedTradeSchema - valide un trade détecté complet", () => {
-  const trade = {
-    id: "dt-12345",
-    targetAddress: "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E",
-    marketSlug: "presidential-election-2024",
-    marketQuestion: "Will Trump win the 2024 election?",
-    conditionId: "cond-999",
-    assetAddress: "0xE111180000d2663C0091e4f400237545B87B996B",
-    outcomeIndex: 0,
-    outcomeLabel: "Yes",
-    side: "BUY",
-    price: 0.52,
-    sizeShares: 100,
-    sizeUsdc: 52,
-    detectedAt: 1731000000000,
-    source: "POLYMARKET_API",
-  };
-  const parsed = DetectedTradeSchema.parse(trade);
-  assertEquals(parsed.id, "dt-12345");
-  assertEquals(parsed.side, "BUY");
+    const trade = {
+        id: "dt-12345",
+        targetAddress: "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E",
+        marketSlug: "presidential-election-2024",
+        marketQuestion: "Will Trump win the 2024 election?",
+        conditionId: "cond-999",
+        assetAddress: "0xE111180000d2663C0091e4f400237545B87B996B",
+        outcomeIndex: 0,
+        outcomeLabel: "Yes",
+        side: "BUY",
+        price: 0.52,
+        sizeShares: 100,
+        sizeUsdc: 52,
+        detectedAt: 1731000000000,
+        source: "POLYMARKET_API",
+    };
+    const parsed = DetectedTradeSchema.parse(trade);
+    assertEquals(parsed.id, "dt-12345");
+    assertEquals(parsed.side, "BUY");
 });
 
 Deno.test("ExecutedTradeSchema - valide un trade exécuté avec slippage", () => {
-  const executed = {
-    id: "et-999",
-    detectedTradeId: "dt-12345",
-    targetAddress: "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E",
-    conditionId: "cond-999",
-    side: "BUY",
-    targetPrice: 0.52,
-    executedPrice: 0.525,
-    slippagePercent: 0.96,
-    shares: 50,
-    costUsdc: 26.25,
-    status: "FILLED",
-    isDryRun: true,
-    executedAt: 1731000001000,
-  };
-  const parsed = ExecutedTradeSchema.parse(executed);
-  assertEquals(parsed.status, "FILLED");
+    const executed = {
+        id: "et-999",
+        detectedTradeId: "dt-12345",
+        targetAddress: "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E",
+        conditionId: "cond-999",
+        side: "BUY",
+        targetPrice: 0.52,
+        executedPrice: 0.525,
+        slippagePercent: 0.96,
+        shares: 50,
+        costUsdc: 26.25,
+        status: "FILLED",
+        isDryRun: true,
+        executedAt: 1731000001000,
+    };
+    const parsed = ExecutedTradeSchema.parse(executed);
+    assertEquals(parsed.status, "FILLED");
 });
 
 Deno.test("PolymarketRawActivityTradeSchema - convertit les chaînes numériques et conserve event_slug", () => {
-  const rawApiData = {
-    id: "act-1",
-    timestamp: "1731000000000",
-    user: "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E",
-    side: "buy",
-    price: "0.45",
-    size: "200.5",
-    asset: "0xE111180000d2663C0091e4f400237545B87B996B",
-    event_slug: "anthropic-ipo-date",
-    market: {
-      slug: "will-anthropic-ipo-in-november-2026",
-      event_slug: "anthropic-ipo-date",
-    },
-  };
-  const parsed = PolymarketRawActivityTradeSchema.parse(rawApiData);
-  assertEquals(parsed.side, "BUY");
-  assertEquals(parsed.price, 0.45);
-  assertEquals(parsed.size, 200.5);
-  assertEquals(parsed.timestamp, 1731000000000);
-  assertEquals(parsed.event_slug, "anthropic-ipo-date");
-  assertEquals(parsed.market?.event_slug, "anthropic-ipo-date");
+    const rawApiData = {
+        id: "act-1",
+        timestamp: "1731000000000",
+        user: "0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E",
+        side: "buy",
+        price: "0.45",
+        size: "200.5",
+        asset: "0xE111180000d2663C0091e4f400237545B87B996B",
+        event_slug: "anthropic-ipo-date",
+        market: {
+            slug: "will-anthropic-ipo-in-november-2026",
+            event_slug: "anthropic-ipo-date",
+        },
+    };
+    const parsed = PolymarketRawActivityTradeSchema.parse(rawApiData);
+    assertEquals(parsed.side, "BUY");
+    assertEquals(parsed.price, 0.45);
+    assertEquals(parsed.size, 200.5);
+    assertEquals(parsed.timestamp, 1731000000000);
+    assertEquals(parsed.event_slug, "anthropic-ipo-date");
+    assertEquals(parsed.market?.event_slug, "anthropic-ipo-date");
 });
 
 Deno.test("DiscordWebhookPayloadSchema - valide un payload d'alerte", () => {
-  const payload = {
-    username: "[TEST] Lotso",
-    embeds: [
-      {
-        title: "🟢 Achat Répliqué",
-        description: "Copie exécutée avec succès",
-        color: 0x00c853,
-        fields: [
-          { name: "Cible", value: "Whale Alpha", inline: true },
-          { name: "Prix", value: "0.52 USDC", inline: true },
+    const payload = {
+        username: "[TEST] Lotso",
+        embeds: [
+            {
+                title: "🟢 Achat Répliqué",
+                description: "Copie exécutée avec succès",
+                color: 0x00c853,
+                fields: [
+                    { name: "Cible", value: "Whale Alpha", inline: true },
+                    { name: "Prix", value: "0.52 USDC", inline: true },
+                ],
+                timestamp: new Date().toISOString(),
+            },
         ],
-        timestamp: new Date().toISOString(),
-      },
-    ],
-  };
-  const parsed = DiscordWebhookPayloadSchema.parse(payload);
-  assertEquals(parsed.embeds.length, 1);
+    };
+    const parsed = DiscordWebhookPayloadSchema.parse(payload);
+    assertEquals(parsed.embeds.length, 1);
 });
 
 Deno.test("PaginationQuerySchema - convertit et assigne les valeurs par défaut", () => {
-  const parsedDefault = PaginationQuerySchema.parse({});
-  assertEquals(parsedDefault.page, 1);
-  assertEquals(parsedDefault.limit, 20);
+    const parsedDefault = PaginationQuerySchema.parse({});
+    assertEquals(parsedDefault.page, 1);
+    assertEquals(parsedDefault.limit, 20);
 
-  const parsedCustom = PaginationQuerySchema.parse({ page: "3", limit: "50", side: "BUY" });
-  assertEquals(parsedCustom.page, 3);
-  assertEquals(parsedCustom.limit, 50);
-  assertEquals(parsedCustom.side, "BUY");
+    const parsedCustom = PaginationQuerySchema.parse({ page: "3", limit: "50", side: "BUY" });
+    assertEquals(parsedCustom.page, 3);
+    assertEquals(parsedCustom.limit, 50);
+    assertEquals(parsedCustom.side, "BUY");
 });
 
 Deno.test("ClosedPositionsQuerySchema - valide et parse les filtres et la pagination", () => {
-  const parsedDefault = ClosedPositionsQuerySchema.parse({});
-  assertEquals(parsedDefault.page, 1);
-  assertEquals(parsedDefault.limit, 25);
-  assertEquals(parsedDefault.status, "ALL");
+    const parsedDefault = ClosedPositionsQuerySchema.parse({});
+    assertEquals(parsedDefault.page, 1);
+    assertEquals(parsedDefault.limit, 25);
+    assertEquals(parsedDefault.status, "ALL");
 
-  const parsedCustom = ClosedPositionsQuerySchema.parse({
-    page: "2",
-    limit: "50",
-    status: "WIN",
-    since: "1730000000000",
-  });
-  assertEquals(parsedCustom.page, 2);
-  assertEquals(parsedCustom.limit, 50);
-  assertEquals(parsedCustom.status, "WIN");
-  assertEquals(parsedCustom.since, 1730000000000);
+    const parsedCustom = ClosedPositionsQuerySchema.parse({
+        page: "2",
+        limit: "50",
+        status: "WIN",
+        since: "1730000000000",
+    });
+    assertEquals(parsedCustom.page, 2);
+    assertEquals(parsedCustom.limit, 50);
+    assertEquals(parsedCustom.status, "WIN");
+    assertEquals(parsedCustom.since, 1730000000000);
 });
 
 Deno.test("buildClosedPositionEmbed - construit et valide un payload pour une victoire", () => {
-  const position = {
-    id: "pos-win-1",
-    conditionId: "0x1234567890abcdef1234567890abcdef12345678",
-    assetAddress: "0x2005d16a84ceefa912d4e380cd32e7ff827875ea",
-    marketSlug: "presidential-election-2026",
-    marketQuestion: "Who will win the 2026 election?",
-    outcomeLabel: "Democrat",
-    status: "CLOSED" as const,
-    closeReason: "RESOLVED_WIN" as const,
-    settledPayoutUsdc: 60.0,
-    realizedPnlUsdc: 30.0,
-    totalShares: 60.0,
-    avgEntryPrice: 0.5,
-    totalInvestedUsdc: 30.0,
-    currentMarketPrice: 1.0,
-    currentMarketValueUsdc: 60.0,
-    unrealizedPnlUsdc: 0,
-    unrealizedPnlPercent: 0,
-    targetAddress: "0x2005d16a84ceefa912d4e380cd32e7ff827875ea",
-    openedAt: Date.now() - 3600000,
-    closedAt: Date.now(),
-    updatedAt: Date.now(),
-  };
+    const position = {
+        id: "pos-win-1",
+        conditionId: "0x1234567890abcdef1234567890abcdef12345678",
+        assetAddress: "0x2005d16a84ceefa912d4e380cd32e7ff827875ea",
+        marketSlug: "presidential-election-2026",
+        marketQuestion: "Who will win the 2026 election?",
+        outcomeLabel: "Democrat",
+        status: "CLOSED" as const,
+        closeReason: "RESOLVED_WIN" as const,
+        settledPayoutUsdc: 60.0,
+        realizedPnlUsdc: 30.0,
+        totalShares: 60.0,
+        avgEntryPrice: 0.5,
+        totalInvestedUsdc: 30.0,
+        currentMarketPrice: 1.0,
+        currentMarketValueUsdc: 60.0,
+        unrealizedPnlUsdc: 0,
+        unrealizedPnlPercent: 0,
+        targetAddress: "0x2005d16a84ceefa912d4e380cd32e7ff827875ea",
+        openedAt: Date.now() - 3600000,
+        closedAt: Date.now(),
+        updatedAt: Date.now(),
+    };
 
-  const payload = buildClosedPositionEmbed(position, "RN1 (+13.4M$)");
-  const parsed = DiscordWebhookPayloadSchema.parse(payload);
-  assertEquals(parsed.embeds.length, 1);
-  assertEquals(parsed.embeds[0]?.title?.includes("VICTOIRE"), true);
-  assertEquals(parsed.embeds[0]?.color, 0x00c853);
+    const payload = buildClosedPositionEmbed(position, "RN1 (+13.4M$)");
+    const parsed = DiscordWebhookPayloadSchema.parse(payload);
+    assertEquals(parsed.embeds.length, 1);
+    assertEquals(parsed.embeds[0]?.title?.includes("VICTOIRE"), true);
+    assertEquals(parsed.embeds[0]?.color, 0x00c853);
 });
 
 Deno.test("buildClosedPositionEmbed - garantit la cohérence du Payout et PnL sur RESOLVED_WIN même si les champs en base étaient désynchronisés", () => {
-  const positionDesync = {
-    id: "pos-desync-1",
-    conditionId: "0x823cec29f6a0f5e45926c045d7bc310f5dafe674d79933d9c519327b0f1b94d1",
-    assetAddress: "0x29970436340857700276269059517904531209554568958844470089010288759046371916280",
-    marketSlug: "atp-geerts-nagal-2026-11-11",
-    marketQuestion: "Hersonissos 3: Michael Geerts vs Sumit Nagal",
-    outcomeLabel: "Sumit Nagal",
-    status: "CLOSED" as const,
-    closeReason: "RESOLVED_WIN" as const,
-    settledPayoutUsdc: 4.45, // Valeur périmée
-    realizedPnlUsdc: 0.62, // Valeur périmée
-    totalShares: 8.5, // Valeur à jour
-    avgEntryPrice: 0.689,
-    totalInvestedUsdc: 5.86, // Valeur à jour
-    currentMarketPrice: 1.0,
-    currentMarketValueUsdc: 8.5,
-    unrealizedPnlUsdc: 0,
-    unrealizedPnlPercent: 0,
-    targetAddress: "0x2005d16a84ceefa912d4e380cd32e7ff827875ea",
-    openedAt: Date.now() - 3600000,
-    closedAt: Date.now(),
-    updatedAt: Date.now(),
-  };
+    const positionDesync = {
+        id: "pos-desync-1",
+        conditionId: "0x823cec29f6a0f5e45926c045d7bc310f5dafe674d79933d9c519327b0f1b94d1",
+        assetAddress:
+            "0x29970436340857700276269059517904531209554568958844470089010288759046371916280",
+        marketSlug: "atp-geerts-nagal-2026-11-11",
+        marketQuestion: "Hersonissos 3: Michael Geerts vs Sumit Nagal",
+        outcomeLabel: "Sumit Nagal",
+        status: "CLOSED" as const,
+        closeReason: "RESOLVED_WIN" as const,
+        settledPayoutUsdc: 4.45, // Valeur périmée
+        realizedPnlUsdc: 0.62, // Valeur périmée
+        totalShares: 8.5, // Valeur à jour
+        avgEntryPrice: 0.689,
+        totalInvestedUsdc: 5.86, // Valeur à jour
+        currentMarketPrice: 1.0,
+        currentMarketValueUsdc: 8.5,
+        unrealizedPnlUsdc: 0,
+        unrealizedPnlPercent: 0,
+        targetAddress: "0x2005d16a84ceefa912d4e380cd32e7ff827875ea",
+        openedAt: Date.now() - 3600000,
+        closedAt: Date.now(),
+        updatedAt: Date.now(),
+    };
 
-  const payload = buildClosedPositionEmbed(positionDesync, "RN1");
-  const fields = payload.embeds[0]?.fields ?? [];
-  const payoutField = fields.find((f) => f.name.includes("Cash Récupéré"));
-  const pnlField = fields.find((f) => f.name.includes("Gain Net"));
-  const sharesField = fields.find((f) => f.name.includes("Parts Détenues"));
+    const payload = buildClosedPositionEmbed(positionDesync, "RN1");
+    const fields = payload.embeds[0]?.fields ?? [];
+    const payoutField = fields.find((f) => f.name.includes("Cash Récupéré"));
+    const pnlField = fields.find((f) => f.name.includes("Gain Net"));
+    const sharesField = fields.find((f) => f.name.includes("Parts Détenues"));
 
-  assertEquals(payoutField?.value, "**8.50 USDC**");
-  assertEquals(pnlField?.value.includes("+2.64 USDC"), true);
-  assertEquals(sharesField?.value, "8.50 parts");
+    assertEquals(payoutField?.value, "**8.50 USDC**");
+    assertEquals(pnlField?.value.includes("+2.64 USDC"), true);
+    assertEquals(sharesField?.value, "8.50 parts");
 });
 
 Deno.test("buildClosedPositionsSummaryEmbed - construit et valide un payload de synthèse", () => {
-  const summary = {
-    totalCount: 28,
-    wonCount: 24,
-    lostCount: 4,
-    whaleSellCount: 0,
-    totalInvestedUsdc: 653.11,
-    totalPayoutUsdc: 1231.9,
-    totalRealizedPnlUsdc: 578.79,
-    winRatePercent: 85.71,
-  };
+    const summary = {
+        totalCount: 28,
+        wonCount: 24,
+        lostCount: 4,
+        whaleSellCount: 0,
+        totalInvestedUsdc: 653.11,
+        totalPayoutUsdc: 1231.9,
+        totalRealizedPnlUsdc: 578.79,
+        winRatePercent: 85.71,
+    };
 
-  const payload = buildClosedPositionsSummaryEmbed(summary);
-  const parsed = DiscordWebhookPayloadSchema.parse(payload);
-  assertEquals(parsed.embeds.length, 1);
-  assertEquals(parsed.embeds[0]?.title?.includes("Bilan Global"), true);
-  assertEquals(parsed.embeds[0]?.color, 0x00c853);
+    const payload = buildClosedPositionsSummaryEmbed(summary);
+    const parsed = DiscordWebhookPayloadSchema.parse(payload);
+    assertEquals(parsed.embeds.length, 1);
+    assertEquals(parsed.embeds[0]?.title?.includes("Bilan Global"), true);
+    assertEquals(parsed.embeds[0]?.color, 0x00c853);
 });

@@ -1,25 +1,25 @@
 export interface PolymarketUrlTarget {
-  eventSlug?: string | null;
-  marketSlug?: string | null;
-  marketQuestion?: string | null;
-  conditionId?: string | null;
+    eventSlug?: string | null;
+    marketSlug?: string | null;
+    marketQuestion?: string | null;
+    conditionId?: string | null;
 }
 
 const INVALID_SLUGS = new Set([
-  "",
-  "market",
-  "polymarket-market",
-  "polygon-onchain",
-  "unknown",
-  "undefined",
-  "null",
+    "",
+    "market",
+    "polymarket-market",
+    "polygon-onchain",
+    "unknown",
+    "undefined",
+    "null",
 ]);
 
 const INVALID_QUESTIONS = new Set([
-  "",
-  "polymarket question",
-  "question inconnue",
-  "unknown question",
+    "",
+    "polymarket question",
+    "question inconnue",
+    "unknown question",
 ]);
 
 /**
@@ -32,34 +32,34 @@ const INVALID_QUESTIONS = new Set([
  * 4. Otherwise, falls back to https://polymarket.com.
  */
 export function getPolymarketUrl(target?: PolymarketUrlTarget | null): string {
-  if (!target) return "https://polymarket.com";
+    if (!target) return "https://polymarket.com";
 
-  const eventSlug = target.eventSlug?.trim();
-  const marketSlug = target.marketSlug?.trim();
+    const eventSlug = target.eventSlug?.trim();
+    const marketSlug = target.marketSlug?.trim();
 
-  // 1. Valid eventSlug
-  if (eventSlug && !INVALID_SLUGS.has(eventSlug.toLowerCase())) {
-    if (
-      marketSlug &&
-      !INVALID_SLUGS.has(marketSlug.toLowerCase()) &&
-      marketSlug.toLowerCase() !== eventSlug.toLowerCase()
-    ) {
-      return `https://polymarket.com/event/${eventSlug}/${marketSlug}`;
+    // 1. Valid eventSlug
+    if (eventSlug && !INVALID_SLUGS.has(eventSlug.toLowerCase())) {
+        if (
+            marketSlug &&
+            !INVALID_SLUGS.has(marketSlug.toLowerCase()) &&
+            marketSlug.toLowerCase() !== eventSlug.toLowerCase()
+        ) {
+            return `https://polymarket.com/event/${eventSlug}/${marketSlug}`;
+        }
+        return `https://polymarket.com/event/${eventSlug}`;
     }
-    return `https://polymarket.com/event/${eventSlug}`;
-  }
 
-  // 2. Valid marketSlug (Polymarket handles HTTP 307 redirect to the canonical event)
-  if (marketSlug && !INVALID_SLUGS.has(marketSlug.toLowerCase())) {
-    return `https://polymarket.com/market/${marketSlug}`;
-  }
+    // 2. Valid marketSlug (Polymarket handles HTTP 307 redirect to the canonical event)
+    if (marketSlug && !INVALID_SLUGS.has(marketSlug.toLowerCase())) {
+        return `https://polymarket.com/market/${marketSlug}`;
+    }
 
-  // 3. Search query fallback by question
-  const question = target.marketQuestion?.trim();
-  if (question && !INVALID_QUESTIONS.has(question.toLowerCase())) {
-    return `https://polymarket.com/search?q=${encodeURIComponent(question)}`;
-  }
+    // 3. Search query fallback by question
+    const question = target.marketQuestion?.trim();
+    if (question && !INVALID_QUESTIONS.has(question.toLowerCase())) {
+        return `https://polymarket.com/search?q=${encodeURIComponent(question)}`;
+    }
 
-  // 4. Default fallback
-  return "https://polymarket.com";
+    // 4. Default fallback
+    return "https://polymarket.com";
 }
