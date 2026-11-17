@@ -11,8 +11,10 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
   packages: write
+  issues: write
+  pull-requests: write
 
 jobs:
   validate:
@@ -21,6 +23,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Deno
         uses: denoland/setup-deno@v2
@@ -36,13 +40,15 @@ jobs:
       - name: Run Unit Tests
         run: deno task test
 
-  build-and-publish:
-    name: Build NPM & Publish to GitHub Packages
+  release-and-publish:
+    name: Semantic-Release & NPM Publish
     needs: validate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Deno
         uses: denoland/setup-deno@v2
@@ -56,20 +62,23 @@ jobs:
           registry-url: "https://npm.pkg.github.com"
           scope: "@lotso-trading"
 
-      - name: Build NPM Package with Smoke Test
-        run: deno task build:npm
-
-      - name: Pack Verification (Pull Request)
+      - name: Verify Build (Pull Request)
         if: github.event_name == 'pull_request'
         run: |
+          deno task build:npm
           cd npm
           npm pack --dry-run
-          echo "✅ Package artifact successfully verified."
+          echo "✅ Package artifact successfully verified on PR."
 
-      - name: Publish to GitHub Packages (Push develop / main)
+      - name: Automated Semantic Release & Publish (Push develop / main)
         if: github.event_name == 'push'
         run: |
-          cd npm
-          npm publish
+          npx --yes \
+            -p semantic-release@^24.2.0 \
+            -p @semantic-release/exec@^6.0.3 \
+            -p @semantic-release/github@^11.0.0 \
+            -p conventional-changelog-conventionalcommits@^8.0.0 \
+            semantic-release
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

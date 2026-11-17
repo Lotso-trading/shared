@@ -9,7 +9,7 @@ const args = Deno.args;
 let customVersion: string | undefined;
 for (let i = 0; i < args.length; i++) {
     if (args[i] === "--version" && args[i + 1]) {
-        customVersion = args[i + 1];
+        customVersion = args[i + 1]?.replace(/^v/, "");
     }
 }
 
@@ -45,6 +45,7 @@ await build({
         },
         publishConfig: {
             registry: "https://npm.pkg.github.com",
+            tag: isMainBranch ? "latest" : "dev",
         },
     },
     postBuild() {

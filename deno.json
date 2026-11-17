@@ -1,7 +1,7 @@
 {
-    "name": "@polymarket-copy/shared",
+    "name": "@lotso-trading/shared",
     "version": "1.0.0",
-    "build": "1",
+    "build": "2",
     "exports": "./src/index.ts",
     "imports": {
         "zod": "npm:zod@^4.6.7"

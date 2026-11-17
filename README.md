@@ -4,7 +4,7 @@
 [![Zod](https://img.shields.io/badge/Validation-Zod_Runtime-3E67B1?logo=zod&logoColor=white)](https://zod.dev/)
 [![Biome](https://img.shields.io/badge/Linter-Biome_Strict-60A5FA?logo=biome&logoColor=white)](https://biomejs.dev/)
 
-Le package `@polymarket-copy/shared` est le **point d'ancrage universel pour tous les contrats de données** de l'écosystème Lotso Trading. Il définit les entités immuables, les unions discriminées et les schémas de validation runtime Zod partagés entre le bot (`services/bot`), l'API (`services/api`) et l'interface utilisateur (`services/dashboard`).
+Le package `@lotso-trading/shared` est le **point d'ancrage universel pour tous les contrats de données** de l'écosystème Lotso Trading. Il définit les entités immuables, les unions discriminées et les schémas de validation runtime Zod partagés entre le bot (`services/bot`), l'API (`services/api`) et l'interface utilisateur (`services/dashboard`).
 
 ---
 
@@ -52,7 +52,7 @@ import {
   type RiskConfig,
   type TradeStatus,
   tradeValidationSchema,
-} from "@polymarket-copy/shared";
+} from "@lotso-trading/shared";
 
 // Validation runtime d'un payload externe
 const parseResult = tradeValidationSchema.safeParse(incomingPayload);

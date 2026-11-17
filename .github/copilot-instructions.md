@@ -1,8 +1,8 @@
-# Polymarket Copy-Trading — `@polymarket-copy/shared` GitHub Copilot Instructions
+# Polymarket Copy-Trading — `@lotso-trading/shared` GitHub Copilot Instructions
 
 ## Repository Overview
 
-`@polymarket-copy/shared` (`packages/shared`) is the **universal single source of truth for all data contracts** of the Polymarket Copy-Trading ecosystem (`Lotso-trading`):
+`@lotso-trading/shared` (`packages/shared`) is the **universal single source of truth for all data contracts** of the Polymarket Copy-Trading ecosystem (`Lotso-trading`):
 - Exports immutable TypeScript interfaces, discriminated union types, and runtime **Zod** validation schemas.
 - Consumed by `services/api`, `services/bot`, and `services/dashboard`.
 

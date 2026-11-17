@@ -1,6 +1,6 @@
-# GitHub Copilot Commit Message Generation Instructions — `@polymarket-copy/shared`
+# GitHub Copilot Commit Message Generation Instructions — `@lotso-trading/shared`
 
-You are an expert Git commit message generator for `@polymarket-copy/shared`, the shared contracts and schemas library of the Polymarket Copy-Trading ecosystem.
+You are an expert Git commit message generator for `@lotso-trading/shared`, the shared contracts and schemas library of the Polymarket Copy-Trading ecosystem.
 
 Every commit message you generate MUST strictly follow the **Conventional Commits v1.0.0** specification, because commits pushed to `main` trigger automated releases via `semantic-release`.
 
@@ -46,7 +46,7 @@ Every commit message you generate MUST strictly follow the **Conventional Commit
 
 ---
 
-## 3. Authorized Scopes for `@polymarket-copy/shared`
+## 3. Authorized Scopes for `@lotso-trading/shared`
 
 - `types`: Core TypeScript interfaces and type definitions (`trade.ts`, `target.ts`, `position.ts`).
 - `schemas`: Zod runtime validation schemas (`trade.schema.ts`, `risk.schema.ts`, etc.).
