@@ -52,3 +52,11 @@ export const PositionExitOrderSchema = z.object({
     reason: z.enum(["TARGET_SELL", "EMERGENCY", "MANUAL"]),
     targetSoldRatio: RatioPercentSchema,
 });
+
+export const ClosePositionInputSchema = z.object({
+    closeReason: PositionCloseReasonSchema,
+    winningOutcome: z.string().trim().min(1).optional(),
+    endDate: z.string().optional(),
+    settledPayoutUsdc: NonNegativeNumberSchema.optional(),
+    closedAt: UnixTimestampSchema.optional(),
+});

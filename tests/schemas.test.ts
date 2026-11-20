@@ -4,13 +4,18 @@ import {
     buildClosedPositionEmbed,
     buildClosedPositionsSummaryEmbed,
     ClosedPositionsQuerySchema,
+    ClosePositionInputSchema,
     DetectedTradeSchema,
     DiscordWebhookPayloadSchema,
     EthereumAddressSchema,
     ExecutedTradeSchema,
     PaginationQuerySchema,
+    PeriodSummaryQuerySchema,
     PolymarketRawActivityTradeSchema,
     RiskConfigSchema,
+    ServiceVersionsSchema,
+    SyncRequestResponseSchema,
+    TradesQuerySchema,
     UpdateRiskConfigInputSchema,
     WalletAdjustmentInputSchema,
 } from "../src/index.ts";
@@ -272,7 +277,7 @@ Deno.test("PaginationQuerySchema - convertit et assigne les valeurs par défaut"
 Deno.test("ClosedPositionsQuerySchema - valide et parse les filtres et la pagination", () => {
     const parsedDefault = ClosedPositionsQuerySchema.parse({});
     assertEquals(parsedDefault.page, 1);
-    assertEquals(parsedDefault.limit, 25);
+    assertEquals(parsedDefault.limit, 20);
     assertEquals(parsedDefault.status, "ALL");
 
     const parsedCustom = ClosedPositionsQuerySchema.parse({
@@ -285,6 +290,76 @@ Deno.test("ClosedPositionsQuerySchema - valide et parse les filtres et la pagina
     assertEquals(parsedCustom.limit, 50);
     assertEquals(parsedCustom.status, "WIN");
     assertEquals(parsedCustom.since, 1730000000000);
+});
+
+Deno.test("TradesQuerySchema - valide filtres avancés, recherche et tri", () => {
+    const parsed = TradesQuerySchema.parse({
+        page: "2",
+        limit: "20",
+        status: "FILLED",
+        side: "BUY",
+        isDryRun: "DRY_RUN",
+        search: "Trump",
+        sortBy: "costUsdc",
+        sortOrder: "asc",
+    });
+    assertEquals(parsed.page, 2);
+    assertEquals(parsed.limit, 20);
+    assertEquals(parsed.status, "FILLED");
+    assertEquals(parsed.side, "BUY");
+    assertEquals(parsed.isDryRun, "DRY_RUN");
+    assertEquals(parsed.search, "Trump");
+    assertEquals(parsed.sortBy, "costUsdc");
+    assertEquals(parsed.sortOrder, "asc");
+});
+
+Deno.test("PeriodSummaryQuerySchema - valide granularité et pagination par défaut", () => {
+    const parsedDefault = PeriodSummaryQuerySchema.parse({});
+    assertEquals(parsedDefault.granularity, "day");
+    assertEquals(parsedDefault.page, 1);
+    assertEquals(parsedDefault.limit, 20);
+    assertEquals(parsedDefault.sortBy, "period");
+    assertEquals(parsedDefault.sortOrder, "desc");
+    assertEquals(parsedDefault.tz, "UTC");
+
+    const parsedMonth = PeriodSummaryQuerySchema.parse({
+        granularity: "month",
+        sortBy: "netPnl",
+        sortOrder: "asc",
+        tz: "Europe/Paris",
+    });
+    assertEquals(parsedMonth.granularity, "month");
+    assertEquals(parsedMonth.sortBy, "netPnl");
+    assertEquals(parsedMonth.sortOrder, "asc");
+    assertEquals(parsedMonth.tz, "Europe/Paris");
+});
+
+Deno.test("ClosePositionInputSchema & ServiceVersionsSchema & SyncRequestResponseSchema", () => {
+    const closeInput = ClosePositionInputSchema.parse({
+        closeReason: "RESOLVED_WIN",
+        winningOutcome: "Yes",
+        settledPayoutUsdc: 42.5,
+    });
+    assertEquals(closeInput.closeReason, "RESOLVED_WIN");
+    assertEquals(closeInput.settledPayoutUsdc, 42.5);
+
+    const versions = ServiceVersionsSchema.parse({
+        api: "1.0.0",
+        bot: "1.0.0",
+        shared: "1.0.0",
+        botOnline: true,
+        updatedAt: Date.now(),
+    });
+    assertEquals(versions.api, "1.0.0");
+    assertEquals(versions.botOnline, true);
+
+    const syncRes = SyncRequestResponseSchema.parse({
+        requested: true,
+        botOnline: true,
+        message: "Demande transmise au bot",
+        requestedAt: Date.now(),
+    });
+    assertEquals(syncRes.requested, true);
 });
 
 Deno.test("buildClosedPositionEmbed - construit et valide un payload pour une victoire", () => {
